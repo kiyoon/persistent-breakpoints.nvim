@@ -1,4 +1,4 @@
-local cfg = require('persistent-breakpoints.config')
+local cfg = require("persistent-breakpoints.config")
 local M = {}
 
 M.create_path = function(path)
@@ -8,45 +8,55 @@ end
 M.get_path_sep = function()
 	if jit then
 		if jit.os == "Windows" then
-			return '\\'
+			return "\\"
 		else
-			return '/'
+			return "/"
 		end
 	else
 		return package.config:sub(1, 1)
 	end
 end
 
-M.get_bps_path = function ()
+M.get_bps_path = function()
 	local path_sep = M.get_path_sep()
-	local base_filename = vim.fn.getcwd()
+	-- local base_filename = vim.fn.getcwd()
+	-- NOTE: Edit by kiyoon: instead of using the current working directory, use the git root or the current file's directory.
+	local base_filename
+	local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")
+	if #git_root == 0 then
+		base_filename = vim.fn.fnamemodify(vim.fn.expand("%:p"), ":h")
+	end
+	base_filename = git_root[1]
 
-	if jit and jit.os == 'Windows' then
-		base_filename = base_filename:gsub(':', '_')
+	if jit and jit.os == "Windows" then
+		base_filename = base_filename:gsub(":", "_")
 	end
 
-	local cp_filename = base_filename:gsub(path_sep, '_') .. '.json'
+	local cp_filename = base_filename:gsub(path_sep, "_") .. ".json"
 	return cfg.save_dir .. path_sep .. cp_filename
 end
 
-M.load_bps = function (path)
-	local fp = io.open(path,'r')
+M.load_bps = function(path)
+	local fp = io.open(path, "r")
 	local bps = {}
 	if fp ~= nil then
-		local load_bps_raw = fp:read('*a')
+		local load_bps_raw = fp:read("*a")
 		bps = vim.fn.json_decode(load_bps_raw)
 		fp:close()
 	end
 	return bps
 end
 
-M.write_bps = function (path, bps)
+M.write_bps = function(path, bps)
 	bps = bps or {}
-	assert(type(bps) == 'table', "The persistent breakpoints should be stored in a table. Usually it is not the user's problem if you did not call the write_bps function explicitly.")
+	assert(
+		type(bps) == "table",
+		"The persistent breakpoints should be stored in a table. Usually it is not the user's problem if you did not call the write_bps function explicitly."
+	)
 
-	local fp = io.open(path, 'w+')
+	local fp = io.open(path, "w+")
 	if fp == nil then
-		vim.notify('Failed to save checkpoints. File: ' .. vim.fn.expand('%'), 'WARN')
+		vim.notify("Failed to save checkpoints. File: " .. vim.fn.expand("%"), "WARN")
 		return false
 	else
 		fp:write(vim.fn.json_encode(bps))

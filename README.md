@@ -5,6 +5,21 @@ persistent-breakpoints is a lua plugin for Neovim to save the [nvim-dap](https:/
 
 :star: Your stars are my biggest motivation.
 
+## Fork notice
+
+This fork changes the `utils.get_bps_path()` so that it returns the git root directory instead of current working directory.  
+This way, you can seamlessly load breakpoints no matter where you opened the file.
+
+```diff
+- local base_filename = vim.fn.getcwd()
++ local base_filename
++ local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")
++ if #git_root == 0 then
++     base_filename = vim.fn.fnamemodify(vim.fn.expand("%:p"), ":h")
++ end
++ base_filename = git_root[1]
+```
+
 ## Install
 ### with `packer.nvim`  
 `use {'Weissle/persistent-breakpoints.nvim'}`  
