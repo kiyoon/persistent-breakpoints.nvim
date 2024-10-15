@@ -22,11 +22,12 @@ M.get_bps_path = function()
 	-- local base_filename = vim.fn.getcwd()
 	-- NOTE: Edit by kiyoon: instead of using the current working directory, use the git root or the current file's directory.
 	local base_filename
-	local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")
-	if #git_root == 0 then
+	local project_root = vim.fs.root(0, { ".git" })
+	if project_root == nil then
 		base_filename = vim.fn.fnamemodify(vim.fn.expand("%:p"), ":h")
+	else
+		base_filename = project_root
 	end
-	base_filename = git_root[1]
 
 	if jit and jit.os == "Windows" then
 		base_filename = base_filename:gsub(":", "_")

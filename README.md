@@ -12,12 +12,12 @@ This way, you can seamlessly load breakpoints no matter where you opened the fil
 
 ```diff
 - local base_filename = vim.fn.getcwd()
-+ local base_filename
-+ local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")
-+ if #git_root == 0 then
-+     base_filename = vim.fn.fnamemodify(vim.fn.expand("%:p"), ":h")
++ local project_root = vim.fs.root(0, { ".git" })
++ if project_root == nil then
++   base_filename = vim.fn.fnamemodify(vim.fn.expand("%:p"), ":h")
++ else
++   base_filename = project_root
 + end
-+ base_filename = git_root[1]
 ```
 
 ## Install
